@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -19,9 +20,10 @@ import (
 // web application. For now we'll only include fields for the two custom loggers, but
 // we'll add more to it as the build progress
 type application struct {
-	errorLog *log.Logger
-	inforLog *log.Logger
-	snippets *models.SnippetModel
+	errorLog      *log.Logger
+	inforLog      *log.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -44,10 +46,17 @@ func main() {
 	// We also defer a call to db.Close(), so that the connection pool is closed
 	// before the main() function exits.
 	defer db.Close()
+
+	// Initialize a new template cache..
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 	app := &application{
-		errorLog: errorLog,
-		inforLog: infoLog,
-		snippets: &models.SnippetModel{DB: db},
+		errorLog:      errorLog,
+		inforLog:      infoLog,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	srv := &http.Server{
