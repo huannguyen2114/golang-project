@@ -11,6 +11,7 @@ import (
 	//Import the modles package that we just created. You need to prfix this with
 	// whatever module path you set up
 	//{your-module-path}/internal/models
+	"github.com/go-playground/form/v4"
 	"github.com/huannguyen2114/golang-project/snippetbox/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -24,6 +25,7 @@ type application struct {
 	inforLog      *log.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -52,11 +54,14 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+
+	formDecoder := form.NewDecoder()
 	app := &application{
 		errorLog:      errorLog,
 		inforLog:      infoLog,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	srv := &http.Server{
