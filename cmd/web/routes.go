@@ -16,16 +16,20 @@ func (app *application) routes() http.Handler {
 		app.notFound(w)
 	})
 
-	// Update the pattern for the route for the static fileServer
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	// Leave the static file route unchanged
+	fileServer := http.FileServer(http.Dir("./ui/static"))
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
-	// And the ncreate teh routes using the approriate methods, patterns and handlers
-	router.HandlerFunc(http.MethodGet, "/", app.home)
+	// Create a new middleware chain containing the middleware specific to dynamic application routes.
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
-	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
-	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreate)
-	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreatePost)
+	// Update these routes to use the new
+	// And the ncreate teh routes usi/ng the approriate methods, patterns and handlers
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+
+	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
+	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
+	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.snippetCreatePost))
 
 	// Create a middleware chain containing 'standard' middleware which wil be used for every request our application receives
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)

@@ -6,19 +6,19 @@ import (
 )
 
 type Validator struct {
-	FieldsErrors map[string]string
+	FieldErrors map[string]string
 }
 
 func (v *Validator) Valid() bool {
-	return len(v.FieldsErrors) == 0
+	return len(v.FieldErrors) == 0
 }
 
 func (v *Validator) AddFieldError(key, message string) {
-	if v.FieldsErrors == nil {
-		v.FieldsErrors = make(map[string]string)
+	if v.FieldErrors == nil {
+		v.FieldErrors = make(map[string]string)
 	}
-	if _, exists := v.FieldsErrors[key]; !exists {
-		v.FieldsErrors[key] = message
+	if _, exists := v.FieldErrors[key]; !exists {
+		v.FieldErrors[key] = message
 	}
 }
 
@@ -29,7 +29,7 @@ func (v *Validator) CheckField(ok bool, key, message string) {
 }
 
 func NotBlank(value string) bool {
-	return strings.TrimSpace(value) == ""
+	return strings.TrimSpace(value) != ""
 }
 
 func MaxChars(value string, n int) bool {
